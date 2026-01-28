@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/widgets/auth_button.dart';
 import 'package:flutter_app/widgets/inputfield.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'signup_page.dart';
 class LoginPage extends StatefulWidget {
   final VoidCallback onSwitch;
   const LoginPage({super.key,
@@ -19,6 +18,8 @@ class _LoginPageState extends State<LoginPage> {
   final email = TextEditingController();
   final pass = TextEditingController();
   final formkey = GlobalKey<FormState>();
+  String? errorMessage;
+
   @override
   void dispose() {
     email.dispose();
@@ -57,15 +58,49 @@ class _LoginPageState extends State<LoginPage> {
                   SizedBox(height: 20,),
                   Inputfield(hint_text: "Password",controller: pass,hidetext: true,),
                   SizedBox(height: 20,),
-                  AuthButton(label: "Log In",onPressed: () async {
-                      if (!formkey.currentState!.validate()) return;
+                  AuthButton(label: "Log In",
+                      onPressed: () async {
+                        setState(() {
+                          errorMessage = null;
+                        });
 
-                      await FirebaseAuth.instance.signInWithEmailAndPassword(
-                        email: email.text.trim(),
-                        password: pass.text.trim(),
-                      );
-                    },
+                        if (email.text.isEmpty || pass.text.isEmpty) {
+                          setState(() {
+                            errorMessage = 'Please enter email and password';
+                          });
+                          return;
+                        }
+
+                        try {
+                          await FirebaseAuth.instance.signInWithEmailAndPassword(
+                            email: email.text.trim(),
+                            password: pass.text.trim(),
+                          );
+                        } on FirebaseAuthException catch (e) {
+                          setState(() {
+                            if (e.code == 'user-not-found') {
+                              errorMessage = 'User not found';
+                            } else if (e.code == 'wrong-password') {
+                              errorMessage = 'Incorrect password';
+                            } else {
+                              errorMessage = 'Login failed';
+                            }
+                          });
+                        }
+                      },
+
                     ),
+
+                    if (errorMessage != null) ...[
+                      const SizedBox(height: 20),
+                      Text(
+                        errorMessage!,
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
                     SizedBox(height: 20,),
                     GestureDetector(
                     onTap: () {
