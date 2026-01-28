@@ -18,6 +18,8 @@ class _SignupPageState extends State<SignupPage> {
   final email = TextEditingController();
   final pass = TextEditingController();
   final formkey = GlobalKey<FormState>();
+  String? errorMessage;
+
   @override
   void dispose() {
     name.dispose();
@@ -60,15 +62,54 @@ class _SignupPageState extends State<SignupPage> {
                   SizedBox(height: 20,),
                   Inputfield(hint_text: "Password",controller: pass,hidetext: true,),
                   SizedBox(height: 20,),
-                  AuthButton(label: "Sign Up",onPressed: () async {
-                            if (!formkey.currentState!.validate()) return;
+                  AuthButton(
+                    label: "Sign Up",
+                    onPressed: () async {
+                      // clear old error
+                      setState(() {
+                        errorMessage = null;
+                      });
 
-                            await FirebaseAuth.instance.createUserWithEmailAndPassword(
-                              email: email.text.trim(),
-                              password: pass.text.trim(),
-                            );
-                          },
+                      // manual validation (no TextField resize)
+                      if (name.text.isEmpty ||
+                          email.text.isEmpty ||
+                          pass.text.isEmpty) {
+                        setState(() {
+                          errorMessage = 'Please fill all fields';
+                        });
+                        return;
+                      }
+
+                      try {
+                        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+                          email: email.text.trim(),
+                          password: pass.text.trim(),
+                        );
+                      } on FirebaseAuthException catch (e) {
+                        setState(() {
+                          if (e.code == 'email-already-in-use') {
+                            errorMessage = 'Email already in use';
+                          } else if (e.code == 'weak-password') {
+                            errorMessage = 'Password is too weak';
+                          } else if (e.code == 'invalid-email') {
+                            errorMessage = 'Invalid email address';
+                          } else {
+                            errorMessage = 'Signup failed';
+                          }
+                        });
+                      }
+                    },
                   ),
+                  if (errorMessage != null) ...[
+                    const SizedBox(height: 20),
+                    Text(
+                      errorMessage!,
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
                   SizedBox(height: 20,),
                   GestureDetector(
                     onTap: () {
