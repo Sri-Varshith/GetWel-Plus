@@ -6,14 +6,35 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
+  String getGreeting() {
+    final hour = DateTime.now().hour;
 
+    if (hour >= 5 && hour < 12) {
+      return 'Good Morning';
+    } else if (hour >= 12 && hour < 17) {
+      return 'Good Afternoon';
+    } else if (hour >= 17 && hour < 21) {
+      return 'Good Evening';
+    } else {
+      return 'Good Night';
+    }
+  }
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('GetWel+',style: TextStyle(
-          fontSize: 27
+          fontSize: 31
         ),),
+        centerTitle: true,
+          actions: [
+              IconButton(
+                icon: const Icon(Icons.notifications),
+                onPressed: () {
+                  // open notifications page later
+                },
+              ),
+            ],
       ),
       drawer: Drawer(
         child: ListView(
@@ -105,12 +126,37 @@ class HomePage extends ConsumerWidget {
       ),
 
 
-      body: const Center(
-        child: Text(
-          'You are logged in 🎉',
-          style: TextStyle(fontSize: 18),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('users')
+              .doc(FirebaseAuth.instance.currentUser!.uid)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            final data = snapshot.data!;
+            final name = data['name'] ?? 'User';
+            final greeting = getGreeting();
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$greeting, $name 👋',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+              ],
+            );
+          },
         ),
       ),
+
     );
   }
 }
