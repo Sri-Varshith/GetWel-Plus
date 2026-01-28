@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_app/auth/auth_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_app/widgets/feature_card.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -26,6 +27,7 @@ class HomePage extends ConsumerWidget {
         title: const Text('GetWel+',style: TextStyle(
           fontSize: 31
         ),),
+        elevation: 4,
         centerTitle: true,
           actions: [
               IconButton(
@@ -127,35 +129,60 @@ class HomePage extends ConsumerWidget {
 
 
       body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: StreamBuilder<DocumentSnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('users')
-              .doc(FirebaseAuth.instance.currentUser!.uid)
-              .snapshots(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            StreamBuilder<DocumentSnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(FirebaseAuth.instance.currentUser!.uid)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+          
+                final data = snapshot.data!;
+                final name = data['name'] ?? 'User';
+                final greeting = getGreeting();
+          
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '$greeting, $name 👋',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ],
+                );
+              },
+            ),
+            SizedBox(height: 20,),
+          FeatureCard(
+            imagePath: "assets/images/mood.jpg",
+            title: 'Track your mood',
+            subtitle: 'Log how you’re feeling today',
+            onTap: () {
+              // navigate to mood tracker page
+            },
+          ),
+            // SizedBox(height: 20,),
+            FeatureCard(
+              imagePath: 'assets/images/meditation.jpg',
+              title: 'Guided Meditation',
+              subtitle: 'Relax your mind in just a few minutes',
+              onTap: () {
+                // open meditation page
+              },
+            ),
 
-            final data = snapshot.data!;
-            final name = data['name'] ?? 'User';
-            final greeting = getGreeting();
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '$greeting, $name 👋',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-              ],
-            );
-          },
+          ]
         ),
       ),
+
+
 
     );
   }
