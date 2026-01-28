@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/widgets/auth_button.dart';
 import 'package:flutter_app/widgets/inputfield.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class SignupPage extends StatefulWidget {
   final VoidCallback onSwitch;
   const SignupPage({super.key,
@@ -85,6 +87,17 @@ class _SignupPageState extends State<SignupPage> {
                           email: email.text.trim(),
                           password: pass.text.trim(),
                         );
+                        final user = FirebaseAuth.instance.currentUser;
+                        if (user != null) {
+                          await FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(user.uid)
+                              .set({
+                                'name': name.text.trim(),
+                                'email': user.email,
+                                'createdAt': FieldValue.serverTimestamp(),
+                              });
+                        }                        
                       } on FirebaseAuthException catch (e) {
                         setState(() {
                           if (e.code == 'email-already-in-use') {
