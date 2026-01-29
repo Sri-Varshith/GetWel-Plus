@@ -153,6 +153,7 @@ class HomePage extends ConsumerWidget {
                       '$greeting, $name 👋',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.w600,
+                            fontSize: 23,
                           ),
                     ),
                   ],
@@ -177,6 +178,22 @@ class HomePage extends ConsumerWidget {
                 // open meditation page
               },
             ),
+            FeatureCard(
+              imagePath: 'assets/images/stress.jpg',
+              title: 'Stress Check',
+              subtitle: 'Measure your stress level in minutes',
+              onTap: () {
+                // open stress test page
+              },
+            ),
+            FeatureCard(
+              imagePath: 'assets/images/music.jpg',
+              title: 'Calm Music',
+              subtitle: 'Soothing sounds to relax your mind',
+              onTap: () {
+                // open calm music / audio page
+              },
+            ),       
 
           ]
         ),
